@@ -22,7 +22,8 @@ class VoltageApp(App):
         self.layout.add_widget(self.status_label)
 
         # Serial connection setup for HC-05
-        self.port = "/dev/tty.HC-05"  # Update this according to your setup
+        # self.port = "/dev/tty.HC-05"  # Mac
+        self.port = "COM5"  # Windows
         self.baudrate = 9600
         
         # Try to establish the serial connection
@@ -65,20 +66,31 @@ class VoltageApp(App):
         # Read data from HC-05
         if self.serial_conn.in_waiting > 0:
             try:
-                data = float(self.serial_conn.readline().decode().strip())
-                self.voltage_data.append(data)
-                self.time_data.append(current_time)
+                # Read and decode the data, then split it based on delimiter ";"
+                raw_data = self.serial_conn.readline().decode('utf-8').strip()
+                readings = raw_data.split(";")  # Split by semicolon delimiter
 
-                # Print received data to the console
-                print(f"Received: {data} V at {current_time:.2f}s")
+                # Process each reading
+                for reading in readings:
+                    if reading:  # Ensure the reading is not empty
+                        try:
+                            data = float(reading)
+                            self.voltage_data.append(data)
+                            self.time_data.append(current_time)
+                            print(f"Received: {data} V at {current_time:.2f}s")
+                        except ValueError:
+                            print(f"Error converting '{reading}' to float.")
 
-                self.status_label.text = f"Collected data: {data} V at {current_time:.2f}s"
+                # Update status label
+                self.status_label.text = f"Collected data at {current_time:.2f}s"
             except ValueError:
                 self.status_label.text = "Error reading data."
+
 
     def stop_data_collection(self):
         Clock.unschedule(self.data_event)
         self.status_label.text = "Data collection finished. Generating graph..."
+        print(f"Received: {self.voltage_data}")
 
         # Plot the graph
         if self.voltage_data:  # Check if there is data to plot
@@ -104,5 +116,5 @@ class VoltageApp(App):
         from kivy.uix.image import Image
         self.layout.add_widget(Image(source='temp_graph.png'))
 
-if name == "main":
+if __name__ == "__main__":
     VoltageApp().run()
