@@ -26,9 +26,13 @@ class VoltageApp(App):
         self.baudrate = 9600
         
         # Try to establish the serial connection
+        self.serial_conn = None
         try:
             self.serial_conn = serial.Serial(self.port, self.baudrate, timeout=1)
-            self.status_label.text = f"Connected to {self.port}"
+            if self.serial_conn.is_open:
+                self.status_label.text = f"Connected to {self.port}"
+            else:
+                self.status_label.text = "Connection failed."
         except serial.SerialException as e:
             self.status_label.text = f"Error opening serial port: {e}"
             return self.layout  # Exit if unable to connect
