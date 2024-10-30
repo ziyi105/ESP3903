@@ -6,8 +6,7 @@ from kivy.clock import Clock
 import serial
 import time
 import matplotlib.pyplot as plt
-from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-import numpy as np
+from matplotlib.backends.backend_agg import FigureCanvasAgg
 
 class VoltageApp(App):
     def build(self):
@@ -23,10 +22,16 @@ class VoltageApp(App):
         self.layout.add_widget(self.status_label)
 
         # Serial connection setup for HC-05
-        self.port = "/dev/rfcomm0"  # Change this for Windows (e.g., "COM5")
+        self.port = "/dev/tty.HC-05"  # Update this according to your setup
         self.baudrate = 9600
-
-        self.serial_conn = serial.Serial(self.port, self.baudrate, timeout=1)
+        
+        # Try to establish the serial connection
+        try:
+            self.serial_conn = serial.Serial(self.port, self.baudrate, timeout=1)
+            self.status_label.text = f"Connected to {self.port}"
+        except serial.SerialException as e:
+            self.status_label.text = f"Error opening serial port: {e}"
+            return self.layout  # Exit if unable to connect
 
         # Placeholder for voltage data and time
         self.voltage_data = []
@@ -34,8 +39,7 @@ class VoltageApp(App):
 
         # Initialize plot
         self.fig, self.ax = plt.subplots()
-        self.graph_canvas = FigureCanvas(self.fig)
-        self.layout.add_widget(self.graph_canvas)
+        self.graph_widget = None  # Placeholder for the graph widget
         
         return self.layout
 
@@ -44,7 +48,7 @@ class VoltageApp(App):
         self.start_time = time.time()
         self.voltage_data.clear()
         self.time_data.clear()
-        
+
         # Schedule data collection every 0.5 seconds
         self.data_event = Clock.schedule_interval(self.collect_data, 0.5)
 
@@ -63,7 +67,7 @@ class VoltageApp(App):
                 self.status_label.text = f"Collected data: {data} V at {current_time:.2f}s"
             except ValueError:
                 self.status_label.text = "Error reading data."
-    
+
     def stop_data_collection(self):
         Clock.unschedule(self.data_event)
         self.status_label.text = "Data collection finished. Generating graph..."
@@ -75,11 +79,22 @@ class VoltageApp(App):
         self.ax.set_ylabel("Voltage (V)")
         self.ax.set_title("V-t Graph")
         self.ax.legend()
-        
-        # Update Kivy graph widget
-        self.graph_canvas.draw_idle()  # Use draw_idle to update the figure
-        
-        self.status_label.text = "Graph generated."
 
-if __name__ == "__main__":
+        # Create a canvas and draw it
+        if self.graph_widget:
+            self.graph_widget = None  # Remove the previous graph if it exists
+
+        self.graph_widget = FigureCanvasAgg(self.fig)
+        self.graph_widget.draw()
+
+        # Save to a temporary file and load it for display
+        self.fig.savefig('temp_graph.png')
+        self.layout.add_widget(Label(text="Graph generated."))
+        self.layout.add_widget(Button(text='Show Graph', on_press=self.show_graph))
+
+    def show_graph(self, instance):
+        from kivy.uix.image import Image
+        self.layout.add_widget(Image(source='temp_graph.png'))
+
+if name == "main":
     VoltageApp().run()
