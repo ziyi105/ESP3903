@@ -64,6 +64,10 @@ class VoltageApp(App):
                 data = float(self.serial_conn.readline().decode().strip())
                 self.voltage_data.append(data)
                 self.time_data.append(current_time)
+
+                # Print received data to the console
+                print(f"Received: {data} V at {current_time:.2f}s")
+
                 self.status_label.text = f"Collected data: {data} V at {current_time:.2f}s"
             except ValueError:
                 self.status_label.text = "Error reading data."
@@ -73,24 +77,24 @@ class VoltageApp(App):
         self.status_label.text = "Data collection finished. Generating graph..."
 
         # Plot the graph
-        self.ax.clear()
-        self.ax.plot(self.time_data, self.voltage_data, label="Voltage (V)")
-        self.ax.set_xlabel("Time (s)")
-        self.ax.set_ylabel("Voltage (V)")
-        self.ax.set_title("V-t Graph")
-        self.ax.legend()
+        if self.voltage_data:  # Check if there is data to plot
+            self.ax.clear()
+            self.ax.plot(self.time_data, self.voltage_data, label="Voltage (V)")
+            self.ax.set_xlabel("Time (s)")
+            self.ax.set_ylabel("Voltage (V)")
+            self.ax.set_title("V-t Graph")
+            self.ax.legend()
 
-        # Create a canvas and draw it
-        if self.graph_widget:
-            self.graph_widget = None  # Remove the previous graph if it exists
+            # Create a canvas and draw it
+            self.graph_widget = FigureCanvasAgg(self.fig)
+            self.graph_widget.draw()
 
-        self.graph_widget = FigureCanvasAgg(self.fig)
-        self.graph_widget.draw()
-
-        # Save to a temporary file and load it for display
-        self.fig.savefig('temp_graph.png')
-        self.layout.add_widget(Label(text="Graph generated."))
-        self.layout.add_widget(Button(text='Show Graph', on_press=self.show_graph))
+            # Save to a temporary file and load it for display
+            self.fig.savefig('temp_graph.png')
+            self.layout.add_widget(Label(text="Graph generated."))
+            self.layout.add_widget(Button(text='Show Graph', on_press=self.show_graph))
+        else:
+            self.status_label.text = "No data collected to plot."
 
     def show_graph(self, instance):
         from kivy.uix.image import Image
