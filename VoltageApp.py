@@ -3,10 +3,11 @@ from kivy.uix.button import Button
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
 from kivy.clock import Clock
-from kivy.garden.matplotlib import FigureCanvasKivyAgg
 import serial
 import time
 import matplotlib.pyplot as plt
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+import numpy as np
 
 class VoltageApp(App):
     def build(self):
@@ -33,8 +34,8 @@ class VoltageApp(App):
 
         # Initialize plot
         self.fig, self.ax = plt.subplots()
-        self.graph_widget = FigureCanvasKivyAgg(self.fig)
-        self.layout.add_widget(self.graph_widget)
+        self.graph_canvas = FigureCanvas(self.fig)
+        self.layout.add_widget(self.graph_canvas)
         
         return self.layout
 
@@ -76,7 +77,8 @@ class VoltageApp(App):
         self.ax.legend()
         
         # Update Kivy graph widget
-        self.graph_widget.draw()
+        self.graph_canvas.draw_idle()  # Use draw_idle to update the figure
+        
         self.status_label.text = "Graph generated."
 
 if __name__ == "__main__":
