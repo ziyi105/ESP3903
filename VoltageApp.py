@@ -45,6 +45,9 @@ class VoltageApp(App):
         # Initialize plot
         self.fig, self.ax = plt.subplots()
         self.graph_widget = None  # Placeholder for the graph widget
+
+        # Set data collection duration (in seconds)
+        self.collection_duration = 60  # Change this to any desired duration
         
         return self.layout
 
@@ -59,7 +62,7 @@ class VoltageApp(App):
 
     def collect_data(self, dt):
         current_time = time.time() - self.start_time
-        if current_time >= 10:  # Stop after 10 seconds
+        if current_time >= self.collection_duration:  # Stop after set duration
             self.stop_data_collection()
             return
         
@@ -70,23 +73,24 @@ class VoltageApp(App):
                 raw_data = self.serial_conn.readline().decode('utf-8').strip()
                 readings = raw_data.split(";")  # Split by semicolon delimiter
 
-                # Process each reading
+                # Process each reading (voltage,current)
                 for reading in readings:
                     if reading:  # Ensure the reading is not empty
                         try:
-                            data = float(reading)
-                            self.voltage_data.append(data)
-                            self.time_data.append(current_time)
-                            print(f"Received: {data} V at {current_time:.2f}s")
+                            voltage_str, current_str = reading.split(",")
+                            voltage = float(voltage_str)
+                            current = float(current_str)
+                            self.voltage_data.append(voltage)
+                            self.current_data.append(current)
+                            print(f"Received: {voltage} V, {current} A at {current_time:.2f}s")
                         except ValueError:
-                            print(f"Error converting '{reading}' to float.")
+                            print(f"Error parsing '{reading}'.")
 
                 # Update status label
                 self.status_label.text = f"Collected data at {current_time:.2f}s"
             except ValueError:
                 self.status_label.text = "Error reading data."
-
-
+                
     def stop_data_collection(self):
         Clock.unschedule(self.data_event)
         self.status_label.text = "Data collection finished. Generating graph..."
