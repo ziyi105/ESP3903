@@ -99,13 +99,13 @@ class VoltageApp(App):
         self.status_label.text = "Data collection finished. Generating graph..."
         print(f"Received: {self.voltage_data}")
 
-        # Plot the graph
-        if self.voltage_data:  # Check if there is data to plot
+        # Plot the graph as an IV curve
+        if self.voltage_data and self.current_data:  # Check if there is data to plot
             self.ax.clear()
-            self.ax.plot(self.time_data, self.voltage_data, label="Voltage (V)")
-            self.ax.set_xlabel("Time (s)")
-            self.ax.set_ylabel("Voltage (V)")
-            self.ax.set_title("V-t Graph")
+            self.ax.plot(self.voltage_data, self.current_data, label="IV Curve", marker='o')
+            self.ax.set_xlabel("Voltage (V)")
+            self.ax.set_ylabel("Current (A)")
+            self.ax.set_title("IV Curve")
             self.ax.legend()
 
             # Create a canvas and draw it
