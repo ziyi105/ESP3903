@@ -40,6 +40,7 @@ class VoltageApp(App):
 
         # Placeholder for voltage data and time
         self.voltage_data = []
+        self.current_data = []
         self.time_data = []
 
         # Initialize plot
@@ -55,6 +56,7 @@ class VoltageApp(App):
         self.status_label.text = "Collecting data..."
         self.start_time = time.time()
         self.voltage_data.clear()
+        self.current_data.clear()
         self.time_data.clear()
 
         # Schedule data collection every 0.5 seconds
@@ -72,6 +74,7 @@ class VoltageApp(App):
                 # Read and decode the data, then split it based on delimiter ";"
                 raw_data = self.serial_conn.readline().decode('utf-8').strip()
                 readings = raw_data.split(";")  # Split by semicolon delimiter
+                print(f"Received: {readings}")
 
                 # Process each reading (voltage,current)
                 for reading in readings:
