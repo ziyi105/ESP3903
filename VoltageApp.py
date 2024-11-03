@@ -7,6 +7,7 @@ from kivy.logger import Logger
 import serial
 import matplotlib.pyplot as plt
 from kivy.uix.image import Image
+import numpy as np
 
 class VoltageApp(App):
     def build(self):
@@ -97,12 +98,44 @@ class VoltageApp(App):
             plt.savefig('temp_iv_graph.png')
             plt.close()
 
+            # Calculate Planck's constant
+            self.calculate_planck_constant()
+
             # Display buttons to show graphs
             self.layout.add_widget(Label(text="Graphs generated."))
             self.layout.add_widget(Button(text='Show V-t Graph', on_press=self.show_vt_graph))
             self.layout.add_widget(Button(text='Show I-V Graph', on_press=self.show_iv_graph))
         else:
             self.status_label.text = "No data collected to plot."
+
+    def calculate_planck_constant(self):
+        # Define LED frequency (or wavelength)
+        frequency = 5.0e14  # in Hz, example value; replace with your LED frequency
+        
+        # Convert voltage and current data to numpy arrays for processing
+        voltages = np.array(self.voltage_data)
+        currents = np.array(self.current_data)
+        
+        # Filter for the linear region (adjust threshold as necessary)
+        linear_region_mask = currents > 0.01  # Example threshold to detect significant current
+        linear_voltages = voltages[linear_region_mask]
+        linear_currents = currents[linear_region_mask]
+
+        # Linear fit for the linear region
+        if len(linear_voltages) > 1:
+            slope, intercept = np.polyfit(linear_voltages, linear_currents, 1)
+            threshold_voltage = -intercept / slope  # Extrapolate to find threshold voltage
+
+            # Calculate Planck's constant
+            e = 1.602e-19  # Elementary charge in Coulombs
+            h = (e * threshold_voltage) / frequency  # Planck's constant in J·s
+            
+            # Display calculated Planck's constant
+            self.layout.add_widget(Label(text=f"Estimated Planck's constant: {h:.4e} J·s"))
+            print(f"Threshold Voltage: {threshold_voltage:.2f} V")
+            print(f"Calculated Planck's constant: {h:.4e} J·s")
+        else:
+            self.layout.add_widget(Label(text="Insufficient data for Planck's constant calculation."))
 
     def show_vt_graph(self, instance):
         self.layout.add_widget(Image(source='temp_vt_graph.png'))

@@ -57,7 +57,7 @@ void loop() {
     // Send stop token
     Bluetooth.println("STOP");
     Serial.println("STOP");
-    Serial.println(sizeof(voltageData));
+    Serial.println(dataIndex);
 
     // Reset data index for the next collection
     dataIndex = 0;
