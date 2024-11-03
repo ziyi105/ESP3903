@@ -6,7 +6,7 @@ from kivy.clock import Clock
 from kivy.logger import Logger
 import serial
 import matplotlib.pyplot as plt
-from matplotlib.backends.backend_agg import FigureCanvasAgg
+from kivy.uix.image import Image
 
 class VoltageApp(App):
     def build(self):
@@ -74,26 +74,41 @@ class VoltageApp(App):
 
     def stop_data_collection(self):
         Clock.unschedule(self.data_event)
-        self.status_label.text = "Data collection finished. Generating graph..."
+        self.status_label.text = "Data collection finished. Generating graphs..."
 
         # Plot V-t Curve
         if self.voltage_data:
+            plt.figure()
             plt.plot(self.voltage_data, label="Voltage (V)")
             plt.xlabel("Data Points")
             plt.ylabel("Voltage (V)")
             plt.title("Voltage-Time Curve")
             plt.legend()
-
-            # Save to a temporary file and load it for display
             plt.savefig('temp_vt_graph.png')
-            self.layout.add_widget(Label(text="Graph generated."))
-            self.layout.add_widget(Button(text='Show Graph', on_press=self.show_graph))
+            plt.close()
+
+            # Plot I-V Curve
+            plt.figure()
+            plt.plot(self.voltage_data, self.current_data, label="Current (A)")
+            plt.xlabel("Voltage (V)")
+            plt.ylabel("Current (A)")
+            plt.title("Current-Voltage Curve")
+            plt.legend()
+            plt.savefig('temp_iv_graph.png')
+            plt.close()
+
+            # Display buttons to show graphs
+            self.layout.add_widget(Label(text="Graphs generated."))
+            self.layout.add_widget(Button(text='Show V-t Graph', on_press=self.show_vt_graph))
+            self.layout.add_widget(Button(text='Show I-V Graph', on_press=self.show_iv_graph))
         else:
             self.status_label.text = "No data collected to plot."
 
-    def show_graph(self, instance):
-        from kivy.uix.image import Image
+    def show_vt_graph(self, instance):
         self.layout.add_widget(Image(source='temp_vt_graph.png'))
+
+    def show_iv_graph(self, instance):
+        self.layout.add_widget(Image(source='temp_iv_graph.png'))
 
 if __name__ == "__main__":
     VoltageApp().run()
