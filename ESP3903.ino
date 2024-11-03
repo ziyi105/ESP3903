@@ -25,6 +25,8 @@ void loop() {
     delayMicroseconds(3000000); // Wait a short time after setting HIGH
 
     // Collect data for a specific duration or number of samples
+    digitalWrite(pwmPin, LOW);
+    digitalWrite(dischargePin, HIGH);
     unsigned long startTime = millis();
     while (millis() - startTime < 3000) { // Loop for 3 seconds
         float V1 = analogRead(analogPin_V1) * (5.0 / 1023.0);
@@ -38,6 +40,7 @@ void loop() {
         if (dataIndex < 600) {  // Prevent overflow
             voltageData[dataIndex] = voltage_LED;
             currentData[dataIndex] = current_LED;
+            Serial.println(voltage_LED);
             dataIndex++;
         }
         delay(5);
@@ -53,6 +56,7 @@ void loop() {
     
     // Send stop token
     Bluetooth.println("STOP");
+    Serial.println("STOP");
 
     // Reset data index for the next collection
     dataIndex = 0;
