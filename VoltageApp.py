@@ -48,7 +48,7 @@ class VoltageApp(App):
         self.current_data.clear()
 
         # Schedule data collection
-        self.data_event = Clock.schedule_interval(self.collect_data, 0.5)
+        self.data_event = Clock.schedule_interval(self.collect_data, 0.1)
 
     def collect_data(self, dt):
         # Read data from Bluetooth

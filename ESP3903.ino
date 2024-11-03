@@ -57,8 +57,9 @@ void loop() {
     // Send stop token
     Bluetooth.println("STOP");
     Serial.println("STOP");
+    Serial.println(sizeof(voltageData));
 
     // Reset data index for the next collection
     dataIndex = 0;
-    delay(5000);  // Optional: Delay before the next collection cycle
+    delay(100);  // Optional: Delay before the next collection cycle
 }
