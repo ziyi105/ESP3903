@@ -46,6 +46,7 @@ void loop() {
         delay(5);
     }
 
+    Bluetooth.println("START");
     // Send all data over Bluetooth
     for (int i = 0; i < dataIndex; i++) {
         Bluetooth.print(voltageData[i]);

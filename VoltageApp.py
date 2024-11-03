@@ -40,14 +40,27 @@ class VoltageApp(App):
         # Placeholder for voltage and current data
         self.voltage_data = []
         self.current_data = []
-        
+
         return self.layout
 
     def start_data_collection(self, instance):
-        self.status_label.text = "Collecting data..."
+        self.status_label.text = "Waiting for START token..."
         self.voltage_data.clear()
         self.current_data.clear()
 
+        # Start listening for the START token
+        self.start_event = Clock.schedule_interval(self.wait_for_start_token, 0.1)
+
+    def wait_for_start_token(self, dt):
+        # Read data from Bluetooth
+        if self.serial_conn.in_waiting > 0:
+            raw_data = self.serial_conn.readline().decode('utf-8').strip()
+            if raw_data == "START":
+                self.status_label.text = "Collecting data..."
+                self.start_data_collection_proceed()
+                Clock.unschedule(self.start_event)
+
+    def start_data_collection_proceed(self):
         # Schedule data collection
         self.data_event = Clock.schedule_interval(self.collect_data, 0.1)
 
@@ -58,6 +71,7 @@ class VoltageApp(App):
             
             # Check if received the stop token
             if raw_data == "STOP":
+                print(len(self.voltage_data))
                 self.stop_data_collection()
                 return
             
