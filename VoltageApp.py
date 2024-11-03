@@ -13,6 +13,9 @@ class VoltageApp(App):
         Logger.setLevel('WARNING')
         self.layout = BoxLayout(orientation='vertical')
         
+        # Predefined wavelength in meters (for example, 650 nm for red light)
+        self.wavelength = 575e-9  # Convert nm to meters
+        
         # Start button
         self.start_button = Button(text='Start Data Collection')
         self.start_button.bind(on_press=self.start_data_collection)
@@ -70,7 +73,6 @@ class VoltageApp(App):
             
             # Check if received the stop token
             if raw_data == "STOP":
-                print(len(self.voltage_data))
                 self.stop_data_collection()
                 return
             
@@ -89,6 +91,12 @@ class VoltageApp(App):
     def stop_data_collection(self):
         Clock.unschedule(self.data_event)
         self.status_label.text = "Data collection finished. Generating graphs..."
+
+        # Calculate Planck's constant based on the collected data
+        if self.voltage_data and self.current_data:
+            plancks_constant = self.calculate_plancks_constant()
+            print(f"Calculated Planck's constant: {plancks_constant} J*s")
+            self.status_label.text += f"\nPlanck's constant: {plancks_constant:.6e} J*s"
 
         # Plot V-t Curve
         if self.voltage_data:
@@ -117,6 +125,16 @@ class VoltageApp(App):
             self.layout.add_widget(Button(text='Show I-V Graph', on_press=self.show_iv_graph))
         else:
             self.status_label.text = "No data collected to plot."
+
+    def calculate_plancks_constant(self):
+        # Using the formula: E = h * f, where E = V * I
+        # We can derive h = E / f, where f = c / wavelength
+        # Assuming we have collected multiple data points, we can average them
+        energy_data = [v * i for v, i in zip(self.voltage_data, self.current_data)]
+        average_energy = sum(energy_data) / len(energy_data)
+        frequency = 3e8 / self.wavelength  # Speed of light divided by wavelength
+        plancks_constant = average_energy / frequency  # h = E / f
+        return plancks_constant
 
     def show_vt_graph(self, instance):
         self.layout.add_widget(Image(source='temp_vt_graph.png'))
