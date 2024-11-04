@@ -124,7 +124,7 @@ class VoltageApp(App):
 
     def calculate_planck_constant(self):
         # Define LED frequency (or wavelength)
-        frequency = 5.195e14  # in Hz, example value; replace with your LED frequency
+        frequency = 4.90338e14  # in Hz, example value; replace with your LED frequency
         
         # Convert voltage and current data to numpy arrays for processing
         voltages = np.array(self.voltage_data)

@@ -7,13 +7,14 @@ const int analogPin_V1 = A0;      // Voltage reading across the Resistor
 const int analogPin_V2 = A1;      // Voltage reading across the LED
 const int analogPin_V3 = A2;      // Voltage reading across the LED
 
-float voltageData[600]; // Array for voltage data (adjust size if needed)
-float currentData[600]; // Array for current data (adjust size if needed)
+float voltageData[800]; // Array for voltage data (adjust size if needed)
+float currentData[800]; // Array for current data (adjust size if needed)
 int dataIndex = 0;      // Track number of data points collected
 
 void setup() {
     pinMode(pwmPin, OUTPUT);
     pinMode(dischargePin, OUTPUT);
+    analogReadResolution(14); 
     Serial.begin(9600);
     Bluetooth.begin(9600);
 }
@@ -29,9 +30,9 @@ void loop() {
     digitalWrite(dischargePin, HIGH);
     unsigned long startTime = millis();
     while (millis() - startTime < 3000) { // Loop for 3 seconds
-        float V1 = analogRead(analogPin_V1) * (5.0 / 1023.0);
-        float V2 = analogRead(analogPin_V2) * (5.0 / 1023.0);
-        float V3 = analogRead(analogPin_V3) * (5.0 / 1023.0);
+        float V1 = analogRead(analogPin_V1) * (5.0 / 16383.0);
+        float V2 = analogRead(analogPin_V2) * (5.0 / 16383.0);
+        float V3 = analogRead(analogPin_V3) * (5.0 / 16383.0);
 
         float voltage_LED = V2 - V3;
         float voltage_R = V1 - V2;
@@ -49,9 +50,9 @@ void loop() {
     Bluetooth.println("START");
     // Send all data over Bluetooth
     for (int i = 0; i < dataIndex; i++) {
-        Bluetooth.print(voltageData[i]);
+        Bluetooth.print(voltageData[i], 4);
         Bluetooth.print(",");
-        Bluetooth.print(currentData[i], 5);
+        Bluetooth.print(currentData[i], 7);
         Bluetooth.println(";");
     }
     
