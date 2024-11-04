@@ -124,14 +124,14 @@ class VoltageApp(App):
 
     def calculate_planck_constant(self):
         # Define LED frequency (or wavelength)
-        frequency = 5.0e14  # in Hz, example value; replace with your LED frequency
+        frequency = 5.195e14  # in Hz, example value; replace with your LED frequency
         
         # Convert voltage and current data to numpy arrays for processing
         voltages = np.array(self.voltage_data)
         currents = np.array(self.current_data)
         
         # Filter for the linear region (adjust threshold as necessary)
-        linear_region_mask = currents > 0.01  # Example threshold to detect significant current
+        linear_region_mask = currents > 0.0001  # Example threshold to detect significant current
         linear_voltages = voltages[linear_region_mask]
         linear_currents = currents[linear_region_mask]
 
