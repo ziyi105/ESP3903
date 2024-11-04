@@ -49,7 +49,7 @@ class VoltageApp(App):
         self.current_data.clear()
 
         # Start listening for the START token
-        self.start_event = Clock.schedule_interval(self.wait_for_start_token, 0.1)
+        self.start_event = Clock.schedule_interval(self.wait_for_start_token, 0.001)
 
     def wait_for_start_token(self, dt):
         # Read data from Bluetooth
@@ -91,6 +91,7 @@ class VoltageApp(App):
         Clock.unschedule(self.data_event)
         self.status_label.text = "Data collection finished. Generating graphs..."
 
+
         # Plot V-t Curve
         if self.voltage_data:
             plt.figure()
@@ -131,7 +132,7 @@ class VoltageApp(App):
         currents = np.array(self.current_data)
         
         # Filter for the linear region (adjust threshold as necessary)
-        linear_region_mask = currents > 0.0001  # Example threshold to detect significant current
+        linear_region_mask = currents > 0.005  # Example threshold to detect significant current
         linear_voltages = voltages[linear_region_mask]
         linear_currents = currents[linear_region_mask]
 
@@ -146,6 +147,8 @@ class VoltageApp(App):
             
             # Display calculated Planck's constant
             self.layout.add_widget(Label(text=f"Estimated Planck's constant: {h:.4e} J·s"))
+            print("length of voltage data: ", len(self.voltage_data))
+            print("length of current data: ", len(self.current_data))
             print(f"Threshold Voltage: {threshold_voltage:.2f} V")
             print(f"Calculated Planck's constant: {h:.4e} J·s")
         else:

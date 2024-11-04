@@ -7,8 +7,8 @@ const int analogPin_V1 = A0;      // Voltage reading across the Resistor
 const int analogPin_V2 = A1;      // Voltage reading across the LED
 const int analogPin_V3 = A2;      // Voltage reading across the LED
 
-float voltageData[800]; // Array for voltage data (adjust size if needed)
-float currentData[800]; // Array for current data (adjust size if needed)
+float voltageData[2000]; // Array for voltage data (adjust size if needed)
+float currentData[2000]; // Array for current data (adjust size if needed)
 int dataIndex = 0;      // Track number of data points collected
 
 void setup() {
@@ -44,7 +44,7 @@ void loop() {
             Serial.println(voltage_LED);
             dataIndex++;
         }
-        delay(5);
+        delay(1);
     }
 
     Bluetooth.println("START");
