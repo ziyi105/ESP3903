@@ -12,16 +12,22 @@ import numpy as np
 class VoltageApp(App):
     def build(self):
         Logger.setLevel('WARNING')
-        self.layout = BoxLayout(orientation='vertical')
+        self.layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
         
-        # Start button
-        self.start_button = Button(text='Start Data Collection')
-        self.start_button.bind(on_press=self.start_data_collection)
-        self.layout.add_widget(self.start_button)
-
-        # Status label
-        self.status_label = Label(text="Press 'Start' to begin")
+        # Create a status label first
+        self.status_label = Label(text="Connecting...", size_hint=(1, None), height=50)
         self.layout.add_widget(self.status_label)
+
+        # Create a box layout for centering the button
+        self.center_layout = BoxLayout(orientation='vertical', size_hint=(1, None), height=200)
+        self.start_button = Button(text='Start Data Collection', size_hint=(1, None), size=(200, 50), height=50)
+        self.start_button.bind(on_press=self.start_data_collection)
+        self.center_layout.add_widget(self.start_button)
+
+        self.start_instruction = Label(text="Press 'Start' to begin", size_hint=(1, None), height=50)
+        self.center_layout.add_widget(self.start_instruction)
+
+        self.layout.add_widget(self.center_layout)
 
         # Serial connection setup for HC-05
         self.port = "COM5"  # Windows
@@ -44,12 +50,16 @@ class VoltageApp(App):
         return self.layout
 
     def start_data_collection(self, instance):
+        # Remove the start button after it is pressed
+        self.center_layout.remove_widget(self.start_button)
+        self.center_layout.remove_widget(self.start_instruction)
+        
         self.status_label.text = "Waiting for START token..."
         self.voltage_data.clear()
         self.current_data.clear()
 
         # Start listening for the START token
-        self.start_event = Clock.schedule_interval(self.wait_for_start_token, 0.001)
+        self.start_event = Clock.schedule_interval(self.wait_for_start_token, 0.01)
 
     def wait_for_start_token(self, dt):
         # Read data from Bluetooth
@@ -91,7 +101,6 @@ class VoltageApp(App):
         Clock.unschedule(self.data_event)
         self.status_label.text = "Data collection finished. Generating graphs..."
 
-
         # Plot V-t Curve
         if self.voltage_data:
             plt.figure()
@@ -118,8 +127,10 @@ class VoltageApp(App):
 
             # Display buttons to show graphs
             self.layout.add_widget(Label(text="Graphs generated."))
-            self.layout.add_widget(Button(text='Show V-t Graph', on_press=self.show_vt_graph))
-            self.layout.add_widget(Button(text='Show I-V Graph', on_press=self.show_iv_graph))
+            self.show_iv_button = Button(text='Show V-t Graph', on_press=self.show_vt_graph)
+            self.layout.add_widget(self.show_iv_button)
+            self.show_vt_button = Button(text='Show I-V Graph', on_press=self.show_iv_graph)
+            self.layout.add_widget(self.show_vt_button)
         else:
             self.status_label.text = "No data collected to plot."
 
@@ -155,9 +166,11 @@ class VoltageApp(App):
             self.layout.add_widget(Label(text="Insufficient data for Planck's constant calculation."))
 
     def show_vt_graph(self, instance):
+        self.layout.remove_widget(self.show_iv_button)
         self.layout.add_widget(Image(source='temp_vt_graph.png'))
 
     def show_iv_graph(self, instance):
+        self.layout.remove_widget(self.show_vt_button)
         self.layout.add_widget(Image(source='temp_iv_graph.png'))
 
 if __name__ == "__main__":

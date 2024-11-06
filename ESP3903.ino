@@ -41,7 +41,7 @@ void loop() {
         if (dataIndex < 600) {  // Prevent overflow
             voltageData[dataIndex] = voltage_LED;
             currentData[dataIndex] = current_LED;
-            Serial.println(voltage_LED);
+            Serial.println(current_LED);
             dataIndex++;
         }
         delay(1);
@@ -59,7 +59,7 @@ void loop() {
     // Send stop token
     Bluetooth.println("STOP");
     Serial.println("STOP");
-    Serial.println(dataIndex);
+    // Serial.println(dataIndex);
 
     // Reset data index for the next collection
     dataIndex = 0;
