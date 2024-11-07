@@ -118,7 +118,7 @@ class VoltageApp(App):
 
             # V-t plot with threshold voltage marked
             plt.figure()
-            plt.plot(self.voltage_data, self.current_data, label="Current (A)")
+            plt.plot(voltages, label="Voltage (V)")
             if threshold_voltage is not None:
                 plt.axvline(x=threshold_index, color='r', linestyle='--', label=f"Threshold Voltage ({threshold_voltage:.2f} V)")
             plt.xlabel("Data Points")
@@ -160,22 +160,25 @@ class VoltageApp(App):
         if len(voltages) > 1:
             # Calculate the difference between consecutive voltage readings to detect decay rate change
             voltage_diffs = np.diff(voltages)
-            print(voltage_diffs)
             
-            # Find the point where the decay rate changes significantly
-            # This threshold can be fine-tuned based on observed data
-            decay_threshold = -0.05  # Example threshold for rate of decay change
-            threshold_index = np.argmax(voltage_diffs < decay_threshold)
+            # Take the last 30 points of the voltage differences as baseline noise
+            baseline_values = voltage_diffs[len(voltage_diffs) - 30:]
+            baseline_std_dev = np.std(baseline_values)
+            decay_threshold = 3 * baseline_std_dev
             
-            if threshold_index > 0:
-                # Get the threshold voltage at the point of rate change
-                threshold_voltage = voltages[threshold_index]
+            # Identify points where the decay rate change is significant
+            significant_changes = np.where(np.abs(voltage_diffs) > decay_threshold)[0]
+            
+            if len(significant_changes) > 0:
+                # Get the threshold voltage at the first point of significant rate change
+                threshold_voltage = voltages[significant_changes[0]]
                 
                 # Calculate Planck's constant
                 e = 1.602e-19  # Elementary charge in Coulombs
                 h = (e * threshold_voltage) / frequency  # Planck's constant in J·s
                 
                 # Display calculated Planck's constant
+                self.layout.add_widget(Label(text=f"Threshold Voltage: {threshold_voltage:.2f} V"))
                 self.layout.add_widget(Label(text=f"Estimated Planck's constant: {h:.4e} J·s"))
                 print(f"Threshold Voltage: {threshold_voltage:.2f} V")
                 print(f"Calculated Planck's constant: {h:.4e} J·s")
@@ -184,7 +187,6 @@ class VoltageApp(App):
                 print("Error: Unable to detect significant change in decay rate for threshold voltage calculation.")
         else:
             self.layout.add_widget(Label(text="Insufficient data for Planck's constant calculation."))
-
 
     def show_vt_graph(self, instance):
         self.layout.remove_widget(self.show_iv_button)
