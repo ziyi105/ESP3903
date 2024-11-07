@@ -151,7 +151,8 @@ class VoltageApp(App):
 
     def calculate_planck_constant(self):
         # Define LED frequency (or wavelength)
-        frequency = 4.90338e14  # in Hz, example value; replace with your LED frequency
+        wavelength = 577.5e-9 
+        frequency = 299792458 / wavelength # in Hz, example value; replace with your LED frequency
         
         # Convert voltage data to numpy array for processing
         voltages = np.array(self.voltage_data)
@@ -162,12 +163,12 @@ class VoltageApp(App):
             voltage_diffs = np.diff(voltages)
             
             # Take the last 30 points of the voltage differences as baseline noise
-            baseline_values = voltage_diffs[len(voltage_diffs) - 30:]
+            baseline_values = voltage_diffs[len(voltage_diffs) - 60:]
             baseline_std_dev = np.std(baseline_values)
-            decay_threshold = 3 * baseline_std_dev
+            decay_threshold = 15 * baseline_std_dev
             
             # Identify points where the decay rate change is significant
-            significant_changes = np.where(np.abs(voltage_diffs) > decay_threshold)[0]
+            significant_changes = np.where(np.abs(voltage_diffs)[30:] > decay_threshold)[0]
             
             if len(significant_changes) > 0:
                 # Get the threshold voltage at the first point of significant rate change
