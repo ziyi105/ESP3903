@@ -1,0 +1,34 @@
+@startuml
+actor User
+participant "Kivy App" as App
+participant "Bluetooth Module" as BT
+participant "Arduino" as Arduino
+
+User -> App: Launch Application
+App -> BT: Establish Connection
+BT -> App: Connection Status
+App -> User: "Press Start to Begin"
+User -> App: Press "Start Data Collection"
+
+App -> BT: Wait for "START" Token
+BT -> Arduino: Request Data
+Arduino -> BT: Send "START" Token
+BT -> App: "START"
+
+loop Collect Data
+    App -> BT: Request Data
+    BT -> Arduino: Request Data
+    Arduino -> BT: Send Voltage and Current Data
+    BT -> App: Send Voltage and Current Data
+    App -> App: Append Data to Arrays
+end
+
+App -> BT: Detect "STOP" Token
+Arduino -> BT: Send "STOP" Token
+BT -> App: "STOP"
+App -> User: Notify Data Collection Complete
+
+App -> App: Calculate Planck's Constant
+App -> App: Generate Graphs
+App -> User: Show Threshold Voltage, Planck's Constant, and Graphs
+@enduml
